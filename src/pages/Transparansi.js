@@ -1,11 +1,11 @@
 // src/pages/Transparansi.js
 import React from 'react';
-import { Download, Paperclip } from 'lucide-react';
+// --- PERBAIKAN: Hapus 'Paperclip' ---
+import { Download } from 'lucide-react';
 import { kategoriOptions } from '../data/appData';
 
 export default function TransparansiPage({ laporan = [] }) {
   
-  // <-- UBAHAN: Fungsi download disempurnakan untuk Excel -->
   const downloadReport = () => {
     const headers = [
       'ID Laporan', 
@@ -22,17 +22,15 @@ export default function TransparansiPage({ laporan = [] }) {
     const escapeCSV = (str) => {
       if (str === null || str === undefined) return '';
       let result = String(str);
-      // Escape double quotes by doubling them
       result = result.replace(/"/g, '""');
-      // Jika ada titik koma, baris baru, atau kutip, bungkus dengan kutip
-      // KITA GANTI DARI ',' (koma) KE ';' (titik koma)
-      if (result.search(/("|\;|\n)/g) >= 0) {
+      // --- PERBAIKAN: Hapus backslash (\) sebelum ; ---
+      if (result.search(/("|;|\n)/g) >= 0) {
         result = `"${result}"`;
       }
       return result;
     };
+    // --- BATAS PERBAIKAN ---
 
-    // KITA GANTI PEMISAHNYA MENJADI ';' (titik koma)
     const csvRows = [headers.join(';')]; 
     
     laporan.forEach(item => {
@@ -47,13 +45,10 @@ export default function TransparansiPage({ laporan = [] }) {
         escapeCSV(item.priority || 'Rendah'),
         item.files ? item.files.length : 0
       ];
-      csvRows.push(row.join(';')); // <-- GANTI DI SINI
+      csvRows.push(row.join(';')); 
     });
 
-    // TAMBAHKAN '\uFEFF' (BOM) DI AWAL UNTUK EXCEL
     const csvContent = '\uFEFF' + csvRows.join('\n');
-
-    // Buat Blob dan picu download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     
@@ -73,10 +68,7 @@ export default function TransparansiPage({ laporan = [] }) {
       alert('Browser Anda tidak mendukung fitur download. Silakan coba di browser modern.');
     }
   };
-  // <-- BATAS PERUBAHAN FUNGSI DOWNLOAD -->
 
-
-  // --- (Sisa kode di bawah ini tidak ada perubahan) ---
 
   const kategoriStats = {};
   const kategoriDasar = kategoriOptions.map(kat => kat.split(' ')[0]);
@@ -93,7 +85,7 @@ export default function TransparansiPage({ laporan = [] }) {
         kategoriStats[katDasar].selesai++;
       } else if (item.status === 'Proses') {
         kategoriStats[katDasar].proses++;
-      } else if (item.status === 'Pending') {
+      } else if (item.status === 'pending') {
         kategoriStats[katDasar].pending++;
       }
       if (item.files && item.files.length > 0) {
@@ -110,7 +102,8 @@ export default function TransparansiPage({ laporan = [] }) {
   const totalLaporan = laporan.length;
   const totalSelesai = laporan.filter(l => l.status === 'Selesai').length;
   const totalProses = laporan.filter(l => l.status === 'Proses').length;
-  const totalPending = laporan.filter(l => l.status === 'Pending').length;
+  const totalPending = laporan.filter(l => l.status === 'pending').length;
+
   const getPercentage = (count) => {
     return totalLaporan > 0 ? ((count / totalLaporan) * 100).toFixed(1) : 0;
   };

@@ -8,7 +8,8 @@ import { FileText, BarChart3, CheckCircle, Calendar, Megaphone, Image as ImageIc
  * --- BARU: Komponen Image Slider ---
  * Diperbaiki agar gambar tidak terdistorsi (object-contain)
  */
-const ImageSlider = ({ images }) => {
+const ImageSlider = ({ imageFiles }) => {
+  const images = imageFiles ? imageFiles.map(file => file.url) : [];
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToPrevious = (e) => {
@@ -113,13 +114,13 @@ const PengumumanDetailModal = ({ pengumuman, onClose, formatTanggal }) => {
         {/* Konten Scrollable */}
         <div className="p-6 space-y-4 overflow-y-auto">
           {/* Slider Gambar diletakkan di sini */}
-          <ImageSlider images={pengumuman.imageUrls} />
+          <ImageSlider imageFiles={pengumuman.imageFiles} />
           
           <h4 className="text-xl font-bold text-gray-800">{pengumuman.judul}</h4>
           
           <span className="flex items-center space-x-1 text-sm text-gray-500 -mt-2">
             <Calendar size={16} />
-            <span>Dipublikasikan pada {formatTanggal(pengumuman.tanggal)}</span>
+            <span>Dipublikasikan pada {formatTanggal(pengumuman.createdAt)}</span>
           </span>
           
           <div className="border-t pt-4">
@@ -177,21 +178,23 @@ const PengumumanSection = ({ pengumuman = [], onSelectPengumuman, formatTanggal 
 
               {/* Konten di dalamnya (gambar, judul, dll) tetap sama */}
               <div className="w-full aspect-video rounded-lg mb-3 bg-gray-100 flex items-center justify-center overflow-hidden">
-                {item.imageUrls && item.imageUrls.length > 0 ? (
-                  <img 
-                    src={item.imageUrls[0]} 
-                    alt={item.judul} 
-                    className="w-full h-full object-contain" 
-                  />
-                ) : (
-                   <ImageIcon size={40} className="text-gray-400" />
-                )}
-              </div>
+            {/* --- AWAL PERBAIKAN --- */}
+            {item.imageFiles && item.imageFiles.length > 0 ? (
+              <img 
+                src={item.imageFiles[0].url} // <-- Ambil URL dari objek pertama
+                alt={item.judul} 
+                className="w-full h-full object-contain" 
+              />
+            ) : (
+               <ImageIcon size={40} className="text-gray-400" />
+            )}
+            {/* --- AKHIR PERBAIKAN --- */}
+          </div>
               
               <h4 className="text-base md:text-lg font-semibold text-gray-900 mb-1">{item.judul}</h4>
               <span className="flex items-center space-x-1 text-xs text-gray-500 mb-2">
                 <Calendar size={14} />
-                <span>Dipublikasikan pada {formatTanggal(item.tanggal)}</span>
+                <span>Dipublikasikan pada {formatTanggal(item.createdAt)}</span>
               </span>
               
               <p className="text-sm text-gray-700 whitespace-pre-wrap line-clamp-3">

@@ -12,8 +12,6 @@ import DaftarLaporan from './pages/DaftarLaporan';
 import AdminPengumuman from './pages/adminpengumuman';
 import PengumumanSukses from './pages/PengumumanSukses';
 
-
-// --- (SidebarHeader tidak berubah) ---
 const SidebarHeader = ({ isExpanded = true, onCloseMobile }) => (
   <div className="flex items-center justify-between p-4 border-b border-gray-700 h-[81px]">
     <div className="flex items-center space-x-3 min-w-0">
@@ -38,7 +36,6 @@ const SidebarHeader = ({ isExpanded = true, onCloseMobile }) => (
   </div>
 );
 
-// --- (SidebarContent tidak berubah) ---
 const SidebarContent = ({ currentPage, setCurrentPage, laporan, onLogout, isExpanded, onToggleDesktop }) => {
   const navItems = [
     { id: 'home', label: 'Beranda', icon: Home },
@@ -47,9 +44,12 @@ const SidebarContent = ({ currentPage, setCurrentPage, laporan, onLogout, isExpa
     { id: 'transparansi', label: 'Transparansi', icon: BarChart3 }
   ];
 
+  // --- PERBAIKAN DI SINI ---
+  // Ubah 'Pending' (huruf besar) menjadi 'pending' (huruf kecil)
   const totalSelesai = laporan.filter(l => l.status === 'Selesai').length;
   const totalProses = laporan.filter(l => l.status === 'Proses').length;
-  const totalPending = laporan.filter(l => l.status === 'Pending').length;
+  const totalPending = laporan.filter(l => l.status === 'pending').length; // <-- PERBAIKAN
+  // --- BATAS PERBAIKAN ---
 
   return (
     <>
@@ -169,7 +169,6 @@ const SidebarContent = ({ currentPage, setCurrentPage, laporan, onLogout, isExpa
   );
 };
 
-// --- (MainHeader tidak berubah) ---
 const MainHeader = ({ onToggleMobileSidebar, notifications, setShowNotification, showNotification }) => (
   <header className="
     md:bg-white bg-gray-900 
@@ -198,17 +197,16 @@ const MainHeader = ({ onToggleMobileSidebar, notifications, setShowNotification,
 );
 
 
-// --- 4. LAYOUT UTAMA ADMIN ---
 export default function AdminLayout({ 
+  isLoggedIn,
+  onLoginSuccess,
+  onLogout,
+  adminToken, 
+
   laporan, onDelete, onUpdateStatus, onSetPriority, 
   notifications, onDeleteNotification, onClearAllNotifications,
-  // --- TAMBAHAN: Terima prop edit ---
   allPengumuman, onAddPengumuman, onDeletePengumuman, onEditPengumuman
-  // ---------------------------------
 }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return localStorage.getItem('isAdminLoggedIn') === 'true';
-  });
   
   const [currentPage, setCurrentPage] = useState('home');
   const [showNotification, setShowNotification] = useState(false);
@@ -234,13 +232,9 @@ export default function AdminLayout({
     };
   }, [showNotification]); 
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAdminLoggedIn');
-    setIsLoggedIn(false);
-  };
-
+  
   const handleMobileLogout = () => {
-    handleLogout();
+    onLogout();
     setIsMobileSidebarOpen(false);
   };
 
@@ -254,17 +248,17 @@ export default function AdminLayout({
                   onDelete={onDelete} 
                   onUpdateStatus={onUpdateStatus} 
                   onSetPriority={onSetPriority}
+                  adminToken={adminToken} 
                 />;
       case 'pengumuman':
-        // --- PERUBAHAN: Teruskan prop onEditPengumuman ---
         return <AdminPengumuman
                   allPengumuman={allPengumuman}
                   onAddPengumuman={onAddPengumuman}
                   onDeletePengumuman={onDeletePengumuman}
                   onEditPengumuman={onEditPengumuman}
                   setCurrentPage={setCurrentPage} 
+                  adminToken={adminToken} 
                 />;
-      // ------------------------------------------------
       case 'pengumuman_sukses':
         return <PengumumanSukses  setCurrentPage={setCurrentPage} />;
       case 'transparansi':
@@ -275,7 +269,7 @@ export default function AdminLayout({
   };
 
   if (!isLoggedIn) {
-    return <AdminLogin onLoginSuccess={() => setIsLoggedIn(true)} />;
+    return <AdminLogin onLoginSuccess={onLoginSuccess} />;
   }
 
   const handleNavClick = (page) => {
@@ -300,7 +294,7 @@ export default function AdminLayout({
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
             laporan={laporan}
-            onLogout={handleLogout}
+            onLogout={onLogout} 
             isExpanded={isDesktopSidebarOpen}
             onToggleDesktop={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
           />
@@ -322,12 +316,11 @@ export default function AdminLayout({
             currentPage={currentPage}
             setCurrentPage={handleNavClick}
             laporan={laporan}
-            onLogout={handleMobileLogout}
+            onLogout={handleMobileLogout} 
             isExpanded={true} 
           />
         </div>
       </div>
-
       {isMobileSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
@@ -350,6 +343,8 @@ export default function AdminLayout({
             notifications={notifications} 
             onDeleteNotification={onDeleteNotification}
             onClearAll={onClearAllNotifications}
+            setCurrentPage={setCurrentPage} 
+            setShowNotification={setShowNotification}
           />
         )}
 

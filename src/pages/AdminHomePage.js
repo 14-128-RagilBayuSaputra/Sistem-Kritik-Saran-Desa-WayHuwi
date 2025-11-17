@@ -3,18 +3,21 @@ import React from 'react';
 import { FileText, BarChart3, CheckCircle } from 'lucide-react';
 
 export default function AdminHomePage({ laporan = [] }) { 
-  // ... (kode statistik admin tidak berubah) ...
+  
+  // --- PERBAIKAN DI SINI ---
+  // Ubah 'Pending' (huruf besar) menjadi 'pending' (huruf kecil)
   const totalLaporanDesa = laporan.length;
   const totalSelesai = laporan.filter(l => l.status === 'Selesai').length;
   const totalProses = laporan.filter(l => l.status === 'Proses').length;
-  const totalPending = laporan.filter(l => l.status === 'Pending').length;
+  const totalPending = laporan.filter(l => l.status === 'pending').length; // <-- PERBAIKAN
+  // --- BATAS PERBAIKAN ---
+
   const tingkatRespon = totalLaporanDesa > 0 
     ? ((totalSelesai / totalLaporanDesa) * 100).toFixed(0) 
     : 0;
 
   return (
     <div className="space-y-6">
-      {/* --- PERUBAHAN: Kecilkan padding & font di HP --- */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-4 md:p-6 shadow-lg">
         <h2 className="text-lg md:text-2xl font-bold mb-1">Selamat Datang, Admin!</h2>
         <p className="text-xs md:text-sm text-blue-100">Kelola semua laporan dan aspirasi warga di sini.</p>
@@ -22,7 +25,6 @@ export default function AdminHomePage({ laporan = [] }) {
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       
-        {/* --- PERUBAHAN: Kecilkan padding & font di HP --- */}
         <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-semibold text-gray-800 text-sm md:text-base">Laporan Menunggu</h3>

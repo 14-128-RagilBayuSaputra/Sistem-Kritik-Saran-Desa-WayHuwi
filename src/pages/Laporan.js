@@ -13,25 +13,25 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
     files: []
   });
   
-  const [isAnonim, setIsAnonim] = useState(false); // <-- TAMBAHAN: State untuk anonim
+  const [isAnonim, setIsAnonim] = useState(false); 
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({}); 
 
-  // ... (fungsi handleFileUpload dan removeFile tidak berubah)
+  // --- PERBAIKAN DI SINI ---
+  // Kita simpan objek File lengkap, bukan hanya metadata
   const handleFileUpload = (e) => {
-    const newFiles = Array.from(e.target.files).map(file => ({
-      name: file.name,
-      type: file.type,
-      size: file.size,
+    const newFiles = Array.from(e.target.files);
+    setFormData(prev => ({
+      ...prev, 
+      files: [...prev.files, ...newFiles]
     }));
-    setFormData({...formData, files: [...formData.files, ...newFiles]});
   };
+  // --- BATAS PERBAIKAN ---
 
   const removeFile = (index) => {
     const newFiles = formData.files.filter((_, i) => i !== index);
     setFormData({...formData, files: newFiles});
   };
-  // ...
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,11 +47,9 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
   const validateForm = () => {
     const newErrors = {};
     
-    // <-- UBAHAN: Validasi nama hanya jika tidak anonim
     if (!isAnonim && !formData.nama.trim()) {
       newErrors.nama = 'Nama lengkap wajib diisi.';
     }
-    // ------------------------------------------------
 
     if (!formData.kategori) newErrors.kategori = 'Kategori wajib dipilih.';
     if (!formData.judul.trim()) newErrors.judul = 'Judul laporan wajib diisi.';
@@ -61,30 +59,39 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  // --- FUNGSI handleSubmit SEKARANG ASYNCHRONOUS ---
+  const handleSubmit = async () => { // <--- Tambah async
     if (!validateForm()) {
       return; 
     }
     setIsLoading(true);
     
-    // <-- UBAHAN: Cek jika anonim, ganti nama
     const dataToSubmit = {
       ...formData,
       nama: isAnonim ? 'Warga Anonim' : formData.nama,
-      telepon: isAnonim ? '' : formData.telepon, // Kosongkan telepon jika anonim
+      telepon: isAnonim ? '' : formData.telepon,
+      // 'files' sudah ada di formData
     };
-    // ---------------------------------------
     
-    onAddLaporan(dataToSubmit); // <-- UBAHAN: Kirim data yang sudah dimodifikasi
-    
-    // Reset form
-    setFormData({ 
-      nama: '', telepon: '', 
-      kategori: '', judul: '', deskripsi: '', files: [] 
-    });
-    setIsAnonim(false); // <-- TAMBAHAN: Reset checkbox
-    setIsLoading(false);
-    setCurrentPage('laporan_sukses'); 
+    try {
+      // Kirim data ke App.js (yang akan mengirim ke backend)
+      await onAddLaporan(dataToSubmit); // <--- Tambah await
+      
+      // Reset form
+      setFormData({ 
+        nama: '', telepon: '', 
+        kategori: '', judul: '', deskripsi: '', files: [] 
+      });
+      setIsAnonim(false); 
+      setCurrentPage('laporan_sukses');
+
+    } catch (err) {
+      // Jika onAddLaporan gagal (error dari server), tampilkan alert
+      console.error("Gagal mengirim laporan:", err);
+      alert("Maaf, terjadi kesalahan saat mengirim laporan.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -101,7 +108,6 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {/* <-- UBAHAN: Label dinamis --> */}
                   Nama Lengkap {isAnonim ? '(Opsional)' : <span className="text-red-500">*</span>}
                 </label>
                 <input 
@@ -109,8 +115,8 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
                   name="nama"
                   value={formData.nama}
                   onChange={handleChange}
-                  disabled={isAnonim} // <-- TAMBAHAN: Disable jika anonim
-                  className={`w-full px-4 py-2.5 md:py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${errors.nama ? 'border-red-500' : 'border-gray-300'} ${isAnonim ? 'bg-gray-100 cursor-not-allowed' : ''}`} // <-- UBAHAN: Tambah style disabled
+                  disabled={isAnonim}
+                  className={`w-full px-4 py-2.5 md:py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${errors.nama ? 'border-red-500' : 'border-gray-300'} ${isAnonim ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   placeholder="Masukkan nama lengkap Anda"
                 />
                 {errors.nama && <p className="text-red-500 text-xs mt-1">{errors.nama}</p>}
@@ -124,14 +130,13 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
                   name="telepon"
                   value={formData.telepon}
                   onChange={handleChange}
-                  disabled={isAnonim} // <-- TAMBAHAN: Disable jika anonim
-                  className={`w-full px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${isAnonim ? 'bg-gray-100 cursor-not-allowed' : ''}`} // <-- UBAHAN: Tambah style disabled
+                  disabled={isAnonim}
+                  className={`w-full px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${isAnonim ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   placeholder="Untuk umpan balik"
                 />
               </div>
             </div>
 
-            {/* <-- TAMBAHAN: Checkbox Anonim --> */}
             <div className="flex items-center space-x-2 mt-4">
               <input
                 type="checkbox"
@@ -144,14 +149,7 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
                 Kirim sebagai Anonim
               </label>
             </div>
-            {/* ---------------------------------- */}
-
-            <p className="text-xs text-gray-500 mt-3">
-              <span className="font-semibold">Nama Anda (Wajib)</span> akan diteruskan ke Admin Desa untuk akuntabilitas.
-            </p>
           </div>
-          
-          {/* ... (Sisa form tidak berubah) ... */}
           
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">

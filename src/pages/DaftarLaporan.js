@@ -1,29 +1,23 @@
 // src/pages/DaftarLaporan.js
 import React, { useState } from 'react';
-import { Trash2, CheckCircle, Clock, Check, Loader, Phone, Paperclip, MessageSquare, X } from 'lucide-react';
+// --- PERBAIKAN: Menghapus 'Check' dan 'Trash2' (karena sudah ada di AdminLayout) ---
+import { CheckCircle, Clock, Loader, Phone, Paperclip, MessageSquare, X, Trash2 } from 'lucide-react'; 
 import { kategoriOptions } from '../data/appData';
 
-
-// --- KOMPONEN MODAL BARU (TANPA TANGGAPAN) ---
+// (Komponen Modal tidak berubah)
 const LaporanDetailModal = ({ laporan, onClose }) => {
   return (
-    // Overlay
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-      {/* Konten Modal */}
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        {/* Header Modal */}
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-lg font-semibold text-gray-900">Detail Laporan</h3>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200">
             <X size={20} className="text-gray-600" />
           </button>
         </div>
-
-        {/* Isi Modal (Scrollable) */}
         <div className="p-6 space-y-4 overflow-y-auto">
           <h4 className="text-xl font-bold text-gray-800">{laporan.judul}</h4>
           
-          {/* --- DESKRIPSI LENGKAP DITAMPILKAN DI SINI --- */}
           <div className="border-t pt-4">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Deskripsi Lengkap
@@ -50,25 +44,26 @@ const LaporanDetailModal = ({ laporan, onClose }) => {
             </div>
           </div>
 
-          {/* Lampiran File */}
           {laporan.files && laporan.files.length > 0 && (
             <div className="bg-gray-50 p-3 rounded-lg">
               <h5 className="font-semibold text-gray-700 mb-2">Lampiran</h5>
               <div className="space-y-2">
                 {laporan.files.map((file, index) => (
-                  <div key={index} className="flex items-center space-x-2 text-sm text-blue-600">
+                  <a 
+                    key={index} 
+                    href={file.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-sm text-blue-600 hover:underline"
+                  >
                     <Paperclip size={16} />
-                    <span>{file.name} <span className="text-gray-500 text-xs">({file.type})</span></span>
-                  </div>
+                    <span>{file.originalname || file.filename || 'Lihat Lampiran'}</span>
+                  </a>
                 ))}
               </div>
-              <p className="text-xs text-gray-500 mt-2">*Tampilan file penuh memerlukan backend/database.</p>
             </div>
           )}
-          
         </div>
-
-        {/* Footer Modal */}
         <div className="flex justify-end items-center p-4 border-t space-x-3">
           <button 
             onClick={onClose}
@@ -82,14 +77,11 @@ const LaporanDetailModal = ({ laporan, onClose }) => {
   );
 };
 
-
 // --- KOMPONEN UTAMA HALAMAN ---
 export default function DaftarLaporan({ laporan, onDelete, onUpdateStatus, onSetPriority }) {
   
   const [filterKategori, setFilterKategori] = useState('Semua');
   const [selectedLaporan, setSelectedLaporan] = useState(null);
-
-  // --- FUNGSI isDeletable DIHAPUS ---
 
   const getStatusInfo = (status) => {
     if (status === 'Selesai') {
@@ -200,7 +192,7 @@ export default function DaftarLaporan({ laporan, onDelete, onUpdateStatus, onSet
                 </div>
                 
                 <div className="flex flex-col space-y-2"> 
-                  {item.status === 'Pending' && (
+                  {item.status === 'pending' && (
                     <button onClick={(e) => { e.stopPropagation(); onUpdateStatus(item.id, 'Proses'); }} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-xs font-semibold">
                       Proses
                     </button>
@@ -210,7 +202,6 @@ export default function DaftarLaporan({ laporan, onDelete, onUpdateStatus, onSet
                       Selesai
                     </button>
                   )}
-                  {/* --- PERUBAHAN: Hapus 'disabled' --- */}
                   <button 
                     onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} 
                     className="px-3 py-1.5 bg-red-100 text-red-700 rounded-md hover:bg-red-200 text-xs font-semibold"
@@ -277,10 +268,16 @@ export default function DaftarLaporan({ laporan, onDelete, onUpdateStatus, onSet
                     {item.files && item.files.length > 0 && (
                       <div className="mt-2 text-xs text-blue-600 space-y-1">
                         {item.files.map((file, index) => (
-                          <div key={index} className="flex items-center space-x-1">
+                          <a 
+                            key={index}
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center space-x-1 hover:underline"
+                          >
                             <Paperclip size={14} />
-                            <span className="truncate">{file.name}</span>
-                          </div>
+                            <span className="truncate">{file.originalname || file.filename || 'Lihat Lampiran'}</span>
+                          </a>
                         ))}
                       </div>
                     )}
@@ -307,7 +304,7 @@ export default function DaftarLaporan({ laporan, onDelete, onUpdateStatus, onSet
                     >
                       <MessageSquare size={16} />
                     </button>
-                    {item.status === 'Pending' && (
+                    {item.status === 'pending' && (
                       <button onClick={() => onUpdateStatus(item.id, 'Proses')} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-xs font-semibold">
                         Proses
                       </button>
@@ -317,12 +314,11 @@ export default function DaftarLaporan({ laporan, onDelete, onUpdateStatus, onSet
                         Selesai
                       </button>
                     )}
-                    {/* --- PERUBAHAN: Hapus 'disabled' --- */}
                     <button 
                       onClick={() => onDelete(item.id)} 
                       className="px-3 py-1.5 bg-red-100 text-red-700 rounded-md hover:bg-red-200 text-xs font-semibold"
                     >
-                      Hapus
+                      <Trash2 size={16} /> {/* <-- Ikon Hapus */}
                     </button>
                   </td>
                 </tr>
@@ -332,7 +328,6 @@ export default function DaftarLaporan({ laporan, onDelete, onUpdateStatus, onSet
         </table>
       </div>
 
-      {/* --- RENDER MODAL --- */}
       {selectedLaporan && (
         <LaporanDetailModal 
           laporan={selectedLaporan}

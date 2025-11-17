@@ -1,30 +1,51 @@
-// src/pages/AdminLogin.js - Simple & Clean Version
+// src/pages/AdminLogin.js
 import React, { useState } from 'react';
-import { LogIn } from 'lucide-react';
+import { LogIn, Loader } from 'lucide-react'; // <-- Impor Loader
 
 export default function AdminLogin({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(''); // State untuk error
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // <-- State untuk loading
 
-  const handleLogin = () => {
-    if (username === 'admin' && password === 'admin') {
-      // --- PERUBAHAN DI SINI ---
-      // 1. Simpan status login di localStorage
-      localStorage.setItem('isAdminLoggedIn', 'true');
-      
-      // 2. Panggil fungsi onLoginSuccess (dari AdminLayout)
-      onLoginSuccess();
-      // -------------------------
-    } else {
-      setError('Username atau Password Admin salah!');
+  // --- INI ADALAH FUNGSI BARU YANG TERHUBUNG KE BACKEND ---
+  const handleLogin = async () => {
+    setError(''); // Reset error
+    setIsLoading(true); // Mulai loading
+
+    try {
+      // 1. Kirim data login ke backend Anda
+      const response = await fetch('http://localhost:3001/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Jika server merespons dengan error (misal: 401 Gagal)
+        throw new Error(data.error || 'Username atau password salah!');
+      }
+
+      // 2. Jika login berhasil, panggil onLoginSuccess (dari App.js)
+      //    dan kirimkan token yang didapat dari backend
+      onLoginSuccess(data.token); 
+
+    } catch (err) {
+      // Tangkap error dari fetch atau dari server
+      setError(err.message);
+    } finally {
+      setIsLoading(false); // Berhenti loading
     }
   };
+  // --- BATAS PERUBAHAN ---
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 w-full max-w-md p-8">
-        {/* ... (Logo dan Judul tidak berubah) ... */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 mx-auto mb-4">
             <img 
@@ -44,6 +65,7 @@ export default function AdminLogin({ onLoginSuccess }) {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              disabled={isLoading} // <-- Disable saat loading
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               placeholder="Masukkan username admin"
             />
@@ -55,29 +77,28 @@ export default function AdminLogin({ onLoginSuccess }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading} // <-- Disable saat loading
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               placeholder="Masukkan password"
             />
           </div>
 
-          {/* --- TAMPILKAN ERROR JIKA ADA --- */}
           {error && (
             <p className="text-sm text-red-600 text-center">{error}</p>
           )}
           
           <button 
             onClick={handleLogin}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center space-x-2 shadow-sm"
+            disabled={isLoading} // <-- Disable saat loading
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center space-x-2 shadow-sm disabled:bg-gray-400"
           >
-            <LogIn size={18} />
-            <span>Masuk</span>
+            {isLoading ? (
+              <Loader size={18} className="animate-spin" />
+            ) : (
+              <LogIn size={18} />
+            )}
+            <span>{isLoading ? 'Memverifikasi...' : 'Masuk'}</span>
           </button>
-        </div>
-
-        <div className="mt-6 pt-5 border-t border-gray-200">
-          <p className="text-center text-xs text-gray-500">
-            <strong>Demo:</strong> Username & Password = <code className="bg-gray-100 px-2 py-1 rounded text-xs">admin</code>
-          </p>
         </div>
       </div>
     </div>
