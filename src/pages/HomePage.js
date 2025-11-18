@@ -123,11 +123,14 @@ const PengumumanDetailModal = ({ pengumuman, onClose, formatTanggal }) => {
             <span>Dipublikasikan pada {formatTanggal(pengumuman.createdAt)}</span>
           </span>
           
-          <div className="border-t pt-4">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">
-              {pengumuman.isi}
-            </p>
-          </div>
+          {/* ✅ GANTI DENGAN INI: */}
+        <div className="border-t pt-4 mt-2">
+          <div className="bg-gray-50 p-4 rounded-lg max-h-80 overflow-y-auto border border-gray-100">
+          <p className="text-sm text-gray-700 whitespace-pre-wrap break-words break-all leading-relaxed">
+          {pengumuman.isi}
+          </p>
+        </div>
+      </div>
         </div>
 
         {/* Footer */}

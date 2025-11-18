@@ -120,6 +120,8 @@ export default function App() {
     }
   };
 
+  // Di dalam src/App.js
+
   const handleDeleteLaporan = async (laporanId) => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus laporan ini?')) return;
     
@@ -127,16 +129,25 @@ export default function App() {
       const response = await fetch(`http://localhost:3001/api/laporan/${laporanId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${adminToken}` // <-- KIRIM TOKEN
+          'Authorization': `Bearer ${adminToken}`
         }
       });
 
-      if (!response.ok) {
-        throw new Error('Gagal menghapus laporan');
+      // --- PERBAIKAN DI SINI ---
+      // Jika sukses (200) ATAU data sudah tidak ada (404),
+      // kita tetap hapus dari layar agar sinkron.
+      if (response.ok || response.status === 404) {
+        setAllLaporan(prev => prev.filter(l => l.id !== laporanId));
+        
+        // Opsional: Beri tahu user jika itu sebenarnya 404 (hanya info)
+        if (response.status === 404) {
+           console.log("Data sudah tidak ada di server, menghapus dari tampilan...");
+        }
+      } else {
+        // Jika error lain (misal 500 Server Error), baru kita lempar error
+        const errData = await response.json();
+        throw new Error(errData.error || 'Gagal menghapus laporan');
       }
-
-      // Jika sukses di backend, update state di frontend
-      setAllLaporan(allLaporan.filter(l => l.id !== laporanId));
 
     } catch (err) {
       console.error("Error di handleDeleteLaporan:", err);
@@ -207,45 +218,50 @@ export default function App() {
   };
   const handleClearAllNotifications = () => setNotifications([]); 
 
-  
-  // --- FUNGSI PENGUMUMAN (TERHUBUNG KE BACKEND) ---
-  
-  const handleAddPengumuman = async (pengumumanBaru) => {
-    try {
-      const formData = new FormData();
-      formData.append('judul', pengumumanBaru.judul);
-      formData.append('isi', pengumumanBaru.isi);
-      
-      // 'imageFiles' sekarang berisi campuran objek File (baru) dan objek {url, filename} (lama)
-      // Kita perlu memisahkan mereka
-      const fileObjects = pengumumanBaru.imageFiles.filter(f => f instanceof File);
-      
-      for (const file of fileObjects) {
-        // 'imageUrls' adalah nama field di backend
+const handleAddPengumuman = async (dataPengumuman) => {
+  try {
+    const formData = new FormData();
+    
+    // 1. Masukkan data teks
+    formData.append('judul', dataPengumuman.judul);
+    formData.append('isi', dataPengumuman.isi);
+
+    // 2. PERBAIKAN UTAMA DI SINI (JANGAN SALAH KETIK)
+    // Backend meminta 'imageUrls', JANGAN pakai 'image' atau 'files'
+    if (dataPengumuman.imageFiles && dataPengumuman.imageFiles.length > 0) {
+      dataPengumuman.imageFiles.forEach((file) => {
+        // INI KUNCINYA: Label harus persis 'imageUrls'
         formData.append('imageUrls', file); 
-      }
-
-      const response = await fetch('http://localhost:3001/api/pengumuman', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${adminToken}` // <-- KIRIM TOKEN
-        },
-        body: formData,
       });
-
-      if (!response.ok) throw new Error('Gagal menambah pengumuman');
-
-      const dataHasil = await response.json();
-      const pengumumanDariDB = { ...dataHasil.data, id: dataHasil.data._id };
-
-      setAllPengumuman(prev => [pengumumanDariDB, ...prev]);
-
-    } catch (err) {
-      console.error("Error di handleAddPengumuman:", err);
-      alert("Gagal menambah pengumuman: " + err.message);
-      throw err; // Lempar error agar form tidak reset
     }
-  };
+
+    // 3. Kirim ke Server
+    const response = await fetch('http://localhost:3001/api/pengumuman', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${adminToken}` 
+        // JANGAN set Content-Type manual
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      // Supaya kita tahu error apa yang dibalas server (jika bukan 500)
+      const errorText = await response.text();
+      throw new Error(errorText || 'Gagal menambah pengumuman');
+    }
+
+    const savedData = await response.json();
+    
+    // Update State
+    setAllPengumuman(prev => [savedData.data, ...prev]); 
+
+    return savedData;
+  } catch (error) {
+    console.error("Error di handleAddPengumuman:", error);
+    throw error; 
+  }
+};  
 
   const handleDeletePengumuman = async (pengumumanId) => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus pengumuman ini?')) return;
@@ -267,62 +283,74 @@ export default function App() {
       alert("Gagal menghapus pengumuman: " + err.message);
     }
   };
-  
-  // src/App.js - HANYA GANTI BAGIAN INI UNTUK FUNGSI handleEditPengumuman
 
-// ... kode-kode Anda yang lain di App.js (seperti state, useEffects, fungsi handleAddLaporan, dll.) ...
+const handleEditPengumuman = async (id, data) => {
+  try {
+    const formData = new FormData();
 
-  // --- PERBAIKAN PADA FUNGSI handleEditPengumuman ---
-  // --- PERBAIKAN BESAR DI SINI ---
-  // Fungsi Edit Pengumuman sekarang SELALU mengirim FormData
-  const handleEditPengumuman = async (id, dataToUpdate) => {
-    try {
-      // 1. Selalu buat FormData, bahkan jika hanya edit teks
-      const formData = new FormData();
-      formData.append('judul', dataToUpdate.judul);
-      formData.append('isi', dataToUpdate.isi);
+    // 1. Masukkan Data Teks Utama
+    formData.append('judul', data.judul);
+    formData.append('isi', data.isi);
 
-      // 2. Pisahkan file lama (objek {url, filename}) dari file baru (objek File)
-      const newFileObjects = dataToUpdate.imageFiles.filter(f => f instanceof File);
-      const existingFileObjects = dataToUpdate.imageFiles.filter(f => !(f instanceof File));
+    // 2. Pisahkan File: Mana yang LAMA (url), Mana yang BARU (file object)
+    const fileLama = [];
+    const fileBaru = [];
 
-      // 3. Tambahkan file BARU ke 'imageUrls' (sesuai nama field di backend)
-      for (const file of newFileObjects) {
-        formData.append('imageUrls', file); 
-      }
-      
-      // 4. Tambahkan file LAMA (yang ingin disimpan) sebagai string JSON
-      //    Backend akan membaca ini untuk tahu file mana yang tidak boleh dihapus
-      formData.append('existingFiles', JSON.stringify(existingFileObjects));
-
-      // 5. Kirim request sebagai FormData
-      const response = await fetch(`http://localhost:3001/api/pengumuman/${id}`, {
-        method: 'PUT',
-        headers: {
-          // JANGAN set 'Content-Type', biarkan browser menentukannya
-          'Authorization': `Bearer ${adminToken}` 
-        },
-        body: formData // Kirim sebagai FormData
+    if (data.imageFiles && data.imageFiles.length > 0) {
+      data.imageFiles.forEach(item => {
+        if (item instanceof File) {
+          fileBaru.push(item);
+        } else {
+          fileLama.push(item);
+        }
       });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Gagal mengedit pengumuman');
-      }
-
-      const dataHasil = await response.json();
-      const pengumumanDariDB = { ...dataHasil.data, id: dataHasil.data._id };
-
-      // 6. Update state frontend
-      setAllPengumuman(prev => 
-        prev.map(p => (p.id === id ? pengumumanDariDB : p))
-      );
-    } catch (err) {
-      console.error("Error di handleEditPengumuman:", err);
-      alert("Gagal mengedit pengumuman: " + err.message);
-      throw err; // Lempar error agar form tidak reset
     }
-  };
+
+    // 3. Kirim List File Lama sebagai JSON String (agar server tahu apa yang harus dipertahankan)
+    formData.append('existingFiles', JSON.stringify(fileLama));
+
+    // 4. Kirim File Baru sebagai Binary (dengan nama 'imageUrls' agar server menerimanya)
+    fileBaru.forEach(file => {
+      formData.append('imageUrls', file);
+    });
+
+    // 5. Eksekusi Request ke Backend
+    // Perhatikan: URL menggunakan ID yang valid
+    console.log ('mengirim token:', adminToken)
+    const response = await fetch(`http://localhost:3001/api/pengumuman/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${adminToken}`
+        // Content-Type jangan di-set manual
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || 'Gagal update pengumuman');
+    }
+
+    const savedData = await response.json();
+
+    // 6. Update State di Layar
+    setAllPengumuman(prev => prev.map(p => {
+      // Cek apakah ID cocok (baik id biasa maupun _id)
+      if (p.id === id || p._id === id) {
+         // Kita ganti data lama dengan data baru dari server
+         // PENTING: Kita tambahkan properti 'id' agar sesuai format aplikasi Anda
+         return { ...savedData.data, id: savedData.data._id };
+      }
+      return p;
+    }));
+    // -------------------------------------------
+
+    return savedData;
+  } catch (error) {
+    console.error("Error handleEdit:", error);
+    throw error;
+  }
+};
   // --- BATAS PERBAIKAN ---
 
 // ... sisa kode Anda di App.js (seperti block return dengan Routes dan Route) ...

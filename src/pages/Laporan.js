@@ -208,12 +208,13 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
               <p className="text-sm text-gray-600 mb-2">Upload foto, video, atau dokumen pendukung</p>
               <p className="text-xs text-gray-400 mb-4">Format: JPG, PNG, MP4, PDF (Max 10MB)</p>
               <input 
-                type="file"
-                multiple
-                accept="image/*,video/*,.pdf"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="file-upload"
+              type="file"
+              multiple
+               // Tambahkan ekstensi yang diinginkan di sini
+              accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" 
+              onChange={handleFileUpload}
+              className="hidden"
+              id="file-upload"
               />
               <label 
                 htmlFor="file-upload"
