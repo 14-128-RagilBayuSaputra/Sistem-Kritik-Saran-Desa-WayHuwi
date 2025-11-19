@@ -1,6 +1,6 @@
 // src/AdminLayout.js
 import React, { useState, useEffect, useRef } from 'react';
-import { Home, FileText, BarChart3, LogOut, Bell, Check, Loader, Clock, Menu, X, Megaphone } from 'lucide-react';
+import { Home, FileText, BarChart3, LogOut, Bell, Check, Loader, Clock, Menu, X, Megaphone, Settings } from 'lucide-react';
 import Footer from './components/Footer';
 import NotificationPanel from './components/Notifikasi';
 
@@ -11,6 +11,7 @@ import TransparansiPage from './pages/Transparansi';
 import DaftarLaporan from './pages/DaftarLaporan';
 import AdminPengumuman from './pages/adminpengumuman';
 import PengumumanSukses from './pages/PengumumanSukses';
+import AdminSettings from './pages/AdminSettings';
 
 const SidebarHeader = ({ isExpanded = true, onCloseMobile }) => (
   <div className="flex items-center justify-between p-4 border-b border-gray-700 h-[81px]">
@@ -41,7 +42,8 @@ const SidebarContent = ({ currentPage, setCurrentPage, laporan, onLogout, isExpa
     { id: 'home', label: 'Beranda', icon: Home },
     { id: 'daftar_laporan', label: 'Daftar Laporan', icon: FileText },
     { id: 'pengumuman', label: 'Pengumuman', icon: Megaphone },
-    { id: 'transparansi', label: 'Transparansi', icon: BarChart3 }
+    { id: 'transparansi', label: 'Transparansi', icon: BarChart3 },
+    { id: 'pengaturan', label: 'pengaturan', icon:Settings}
   ];
 
   // --- PERBAIKAN DI SINI ---
@@ -263,6 +265,8 @@ export default function AdminLayout({
         return <PengumumanSukses  setCurrentPage={setCurrentPage} />;
       case 'transparansi':
         return <TransparansiPage laporan={laporan} />;
+      case 'pengaturan':
+        return <AdminSettings adminToken={adminToken} />;
       default:
         return <AdminHomePage laporan={laporan} />;
     }

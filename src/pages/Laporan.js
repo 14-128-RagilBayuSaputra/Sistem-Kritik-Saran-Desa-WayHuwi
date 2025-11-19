@@ -1,6 +1,6 @@
 // src/pages/Laporan.js
 import React, { useState } from 'react';
-import { Send, Camera, Video, Upload, X, Loader, Paperclip } from 'lucide-react'; // Impor Paperclip
+import { Send, Camera, Video, Upload, X, Loader, Paperclip } from 'lucide-react';
 import { kategoriOptions } from '../data/appData';
 
 export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
@@ -17,16 +17,35 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({}); 
 
-  // --- PERBAIKAN DI SINI ---
-  // Kita simpan objek File lengkap, bukan hanya metadata
+  // --- BATAS MAKSIMAL FILE ---
+  const MAX_FILES = 5;
+
+  // --- FUNGSI UPLOAD DENGAN VALIDASI BATAS JUMLAH ---
   const handleFileUpload = (e) => {
     const newFiles = Array.from(e.target.files);
+    const currentTotal = formData.files.length;
+
+    // 1. Cek apakah jumlah file melebihi batas
+    if (currentTotal + newFiles.length > MAX_FILES) {
+      alert(`Maaf, batas maksimal hanya ${MAX_FILES} file bukti.\nAnda saat ini sudah memiliki ${currentTotal} file.`);
+      
+      // Reset input agar user bisa memilih ulang
+      e.target.value = null; 
+      
+      // BERHENTI DI SINI: File baru tidak dimasukkan ke state
+      return; 
+    }
+
+    // 2. Jika aman, simpan ke state
     setFormData(prev => ({
       ...prev, 
       files: [...prev.files, ...newFiles]
     }));
+
+    // Reset value input file agar event onChange tetap jalan 
+    // jika user ingin memilih file yang sama lagi setelah menghapusnya
+    e.target.value = null;
   };
-  // --- BATAS PERBAIKAN ---
 
   const removeFile = (index) => {
     const newFiles = formData.files.filter((_, i) => i !== index);
@@ -59,8 +78,7 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // --- FUNGSI handleSubmit SEKARANG ASYNCHRONOUS ---
-  const handleSubmit = async () => { // <--- Tambah async
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return; 
     }
@@ -75,9 +93,9 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
     
     try {
       // Kirim data ke App.js (yang akan mengirim ke backend)
-      await onAddLaporan(dataToSubmit); // <--- Tambah await
+      await onAddLaporan(dataToSubmit); 
       
-      // Reset form
+      // Reset form jika sukses
       setFormData({ 
         nama: '', telepon: '', 
         kategori: '', judul: '', deskripsi: '', files: [] 
@@ -86,9 +104,9 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
       setCurrentPage('laporan_sukses');
 
     } catch (err) {
-      // Jika onAddLaporan gagal (error dari server), tampilkan alert
       console.error("Gagal mengirim laporan:", err);
-      alert("Maaf, terjadi kesalahan saat mengirim laporan.");
+      // Pesan error spesifik dari server atau pesan umum
+      alert(err.message || "Maaf, terjadi kesalahan saat mengirim laporan.");
     } finally {
       setIsLoading(false);
     }
@@ -206,15 +224,14 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 md:p-6 text-center hover:border-green-500 transition-colors">
               <Upload className="mx-auto text-gray-400 mb-2" size={32} />
               <p className="text-sm text-gray-600 mb-2">Upload foto, video, atau dokumen pendukung</p>
-              <p className="text-xs text-gray-400 mb-4">Format: JPG, PNG, MP4, PDF (Max 10MB)</p>
+              <p className="text-xs text-gray-400 mb-4">Format: JPG, PNG, MP4, PDF, DOCX (Max 10MB, Max 5 File)</p>
               <input 
-              type="file"
-              multiple
-               // Tambahkan ekstensi yang diinginkan di sini
-              accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" 
-              onChange={handleFileUpload}
-              className="hidden"
-              id="file-upload"
+                type="file"
+                multiple
+                accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" 
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
               />
               <label 
                 htmlFor="file-upload"
@@ -226,7 +243,7 @@ export default function LaporanPage({ setCurrentPage, onAddLaporan }) {
 
             {formData.files.length > 0 && (
               <div className="mt-4 space-y-2">
-                <h4 className="text-sm font-semibold text-gray-700">File Terpilih:</h4>
+                <h4 className="text-sm font-semibold text-gray-700">File Terpilih ({formData.files.length}/5):</h4>
                 {formData.files.map((file, index) => (
                   <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
                     <div className="flex items-center space-x-2 min-w-0">
