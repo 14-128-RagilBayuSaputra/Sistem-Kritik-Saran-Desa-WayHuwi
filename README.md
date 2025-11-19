@@ -1,70 +1,60 @@
-# Getting Started with Create React App
+# 🏠 Sistem Kritik & Saran Desa - Frontend Client
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Repository ini adalah bagian **Frontend (Tampilan)** untuk Sistem Kritik & Saran Desa Wayhui. Dibangun menggunakan **React.js** dan **Tailwind CSS** untuk memberikan pengalaman pengguna yang responsif dan modern.
 
-## Available Scripts
+## ✨ Fitur Aplikasi
 
-In the project directory, you can run:
+### 👤 Halaman Warga (Publik)
+* **Dashboard:** Melihat statistik laporan dan pengumuman desa terbaru.
+* **Kirim Aspirasi:** Form pengaduan dengan opsi lampiran bukti (Foto/Dokumen) dan fitur Anonim.
+* **Transparansi:** Melihat grafik/tabel anggaran desa.
+* **Detail Pengumuman:** Modal *popup* untuk melihat pengumuman dan slider foto.
 
-### `npm start`
+### 🛡️ Panel Admin (Terproteksi)
+* **Dashboard Admin:** Ringkasan statistik real-time.
+* **Kelola Laporan:** Mengubah status (Pending -> Proses -> Selesai), menghapus laporan, dan melihat bukti.
+* **Kelola Pengumuman:** Membuat, mengedit, dan menghapus berita desa.
+* **Pengaturan Akun:** Mengubah Username dan Password Admin.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🛠️ Teknologi yang Digunakan
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+* [React.js](https://reactjs.org/) - Library UI
+* [Tailwind CSS](https://tailwindcss.com/) - Styling Framework
+* [Lucide React](https://lucide.dev/) - Ikon Modern
+* [React Router](https://reactrouter.com/) - Navigasi Halaman
 
-### `npm test`
+## 🚀 Instalasi & Menjalankan (Localhost)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1.  **Clone Repository**
+    ```bash
+    git clone [https://github.com/username-anda/frontend-kritik-saran-desa.git](https://github.com/14-128-RagilBayuSaputra/frontend-kritik-saran-desa.git)
+    cd frontend-kritik-saran-desa
+    ```
 
-### `npm run build`
+2.  **Install Dependencies**
+    ```bash
+    npm install
+    ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3.  **Konfigurasi API URL**
+    Pastikan URL Backend sudah sesuai.
+    * Untuk Local: `http://localhost:3001`
+    * Untuk Production: Ganti di `src/App.js` (atau `.env`) menjadi URL Vercel Backend Anda.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4.  **Jalankan Aplikasi**
+    ```bash
+    npm start
+    # Website akan terbuka di http://localhost:3000
+    ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 📱 Tampilan (Screenshots)
 
-### `npm run eject`
+*(Opsional: Anda bisa menaruh screenshot aplikasi di sini nanti)*
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🌐 Deployment
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Frontend ini dioptimalkan untuk di-deploy ke **Vercel**.
+Cukup sambungkan repository GitHub dan klik Deploy.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+*Dibuat oleh Mahasiswa Teknik Informatika - Desa Wayhui*
